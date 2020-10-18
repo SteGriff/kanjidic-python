@@ -23,6 +23,12 @@ You can then run `pip install <whl file>`.
 Save and extract the kanji dictionary file `kanjidic2.xml` from [EDRDG](http://www.edrdg.org/wiki/index.php/KANJIDIC_Project) to the root of the project.
 
 
-### Build
+## Build
 
 Run `make` to build the JSON output, which will go to the `out` directory.
+
+## Output
+
+An example output JSON is in this gist: [kanji.json](https://gist.github.com/SteGriff/07f5b89599554b5fa185587d3461b90f) and is 1.8Mb.
+
+
