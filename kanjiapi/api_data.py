@@ -2,7 +2,6 @@ import ujson
 from collections import defaultdict, OrderedDict
 from lxml import etree
 import csv
-
 from .entry_data import word_dict
 
 
@@ -58,7 +57,7 @@ def heisig_keyword(character_literal):
     global heisig_keywords
 
     if not heisig_keywords:
-        with open('heisig.tsv') as f:
+        with open('heisig.tsv', 'r', encoding='utf8') as f:
             heisig_keywords = { character: keyword
                               for character, keyword
                               in csv.reader(f, delimiter='\t') }
@@ -82,9 +81,6 @@ def kanji_data(character):
 
     return OrderedDict([
         ('kanji', character_literal),
-        ('grade', grade(character)),
-        ('stroke_count', stroke_count(character)),
-        ('meanings', meanings(character)),
         ('kun_readings', kun_readings(character)),
         ('on_readings', on_readings(character)),
         ('name_readings', nanori(character)),
@@ -117,6 +113,8 @@ def CJK_compatibility(character):
 
 def dump_json(filename, obj):
     with open(filename, 'w', encoding='utf8') as f:
+        # f.write(str(obj)) # Works - writes Python OrderedDict to file
+        # f.write(ujson.dumps(obj, ensure_ascii=False))
         ujson.dump(obj, f, ensure_ascii=False)
 
 
@@ -137,47 +135,14 @@ def main():
             if not CJK_compatibility(character)
             ]
 
-    jmdict_entries = etree.parse('JMDict').xpath('//entry')
-    kanji_to_entries = word_dict(jmdict_entries)
-
-    readings = reading_data(kanjis)
+    # readings = reading_data(kanjis)
 
     all_kanji = [kanji['kanji'] for kanji in kanjis]
 
-    jouyou_kanji = [
-            kanji['kanji']
-            for kanji in kanjis
-            if kanji['grade'] in JOUYOU_GRADES
-            ]
+    # for kanji in kanjis:
+        # print('Kanji ' + str(kanji['unicode']))
+        # dump_json(KANJI_DIR + kanji['kanji'], kanji)
 
-    jinmeiyou_kanji = [
-            kanji['kanji']
-            for kanji in kanjis
-            if kanji['grade'] in JINMEIYOU_GRADES
-            ]
+    dump_json(KANJI_DIR + 'main.json', kanjis)
+    #dump_json(KANJI_DIR + 'all', all_kanji)
 
-    for kanji in kanjis:
-        dump_json(KANJI_DIR + kanji['kanji'], kanji)
-        try:
-            entries = kanji_to_entries[kanji['kanji']]
-            dump_json(WORD_DIR + kanji['kanji'], entries)
-        except KeyError:
-            continue
-
-    for reading in readings:
-        dump_json(READING_DIR + reading['reading'], reading)
-
-    dump_json(KANJI_DIR + 'all', all_kanji)
-    dump_json(KANJI_DIR + 'jouyou', jouyou_kanji)
-    dump_json(KANJI_DIR + 'joyo', jouyou_kanji)
-    dump_json(KANJI_DIR + 'jinmeiyou', jinmeiyou_kanji)
-    dump_json(KANJI_DIR + 'jinmeiyo', jinmeiyou_kanji)
-
-    for grade_numeral in JOUYOU_GRADES:
-        grade_kanji = [
-                kanji['kanji']
-                for kanji in kanjis
-                if kanji['grade'] == grade_numeral
-                ]
-
-        dump_json(KANJI_DIR + 'grade-' + str(grade_numeral), grade_kanji)
